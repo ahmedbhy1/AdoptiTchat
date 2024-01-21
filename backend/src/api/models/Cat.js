@@ -15,6 +15,7 @@ export const AdoptionStatus = {
 const catSchema = new mongoose.Schema(
   {
     birthDate: String,
+    name: String,
     race: String,
     sex: {
       type: Number,

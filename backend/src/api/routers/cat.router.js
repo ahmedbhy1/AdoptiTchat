@@ -1,13 +1,17 @@
 import { Router } from 'express';
-import { CatController, UserController } from '../controllers/index.js';
+import { CatController } from '../controllers/index.js';
+import { authenticate } from '../middlewares/auth.middleware.js';
+import { UserRole } from '../core/UserRole.js';
 
 const router = Router();
-const chatController = new CatController();
-const userController = new UserController();
-router.get('/:id', (req, res, next) => chatController.getCat(req, res, next));
-router.patch('/:id', (req, res, next) => chatController.updateCat(req, res, next));
-router.delete('/:id', (req, res, next) => chatController.deleteCat(req, res, next));
-router.get('/', (req, res, next) => chatController.getCats(req, res, next));
-router.post('/', (req, res, next) => chatController.addCat(req, res, next));
-router.get('/countCatAdoption/:id', (req,res,next) => userController.countCatAdoptionRequests(req, res, next));
+const catController = new CatController();
+router.get('/:id', authenticate(), (req, res, next) => catController.getCat(req, res, next));
+router.get('/', authenticate(), (req, res, next) => catController.getCats(req, res, next));
+
+router.use(authenticate(UserRole.Admin));
+router.get('/countCatAdoption/:id', (req, res, next) => catController.countCatAdoptionRequests(req, res, next));
+router.post('/approveAdoption', (req, res, next) => catController.approveAdoptionRequest(req, res, next));
+router.put('/:id', (req, res, next) => catController.updateCat(req, res, next));
+router.delete('/:id', (req, res, next) => catController.deleteCat(req, res, next));
+router.post('/', (req, res, next) => catController.addCat(req, res, next));
 export default router;
