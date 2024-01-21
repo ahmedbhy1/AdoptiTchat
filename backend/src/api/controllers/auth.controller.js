@@ -21,7 +21,7 @@ export default class AuthController {
 
         res.status(HttpStatus.Ok).json({
           success: true,
-          body: { accessToken: accessToken },
+          data: { accessToken: accessToken },
         });
       } catch (error) {
         next(error);
@@ -46,11 +46,41 @@ export default class AuthController {
 
         res.status(HttpStatus.Ok).json({
           success: true,
-          body: {
+          data: {
             accessToken,
           },
         });
         next();
+      } catch (error) {
+        next(error);
+      }
+    }
+
+    async logout(req, res, next) {
+      try {
+        await this.#authService.incrementTokenVersion(req.user.id);
+        res.cookie('jid', '');
+        res.status(HttpStatus.NoContent).send();
+      } catch (error) {
+        next(error);
+      }
+    }
+  
+    async refreshToken(req, res, next) {
+      try {
+        await this.#authService.incrementTokenVersion(req.user.id);
+        const accessToken = this.#jwtService.getAccessToken(req.user);
+        const refreshToken = this.#jwtService.getRefreshToken(req.user);
+
+        res.cookie('jid', refreshToken, {
+          httpOnly: true,
+          path: '/api/auth/refresh-token',
+        });
+
+        res.status(HttpStatus.Ok).json({
+          success: true,
+          data: { accessToken },
+        });
       } catch (error) {
         next(error);
       }

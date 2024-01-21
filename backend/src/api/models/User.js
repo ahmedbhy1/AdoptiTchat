@@ -6,6 +6,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       unique: true,
     },
+    tokenVersion: Number,
     password: String,
     role: Number,
     favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Cat' }],
