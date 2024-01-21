@@ -10,23 +10,22 @@ export class ErrorResponse extends Error {
   }
 
   static unauthorized() {
-    return new ErrorResponse(HttpStatus.Unauthorized, "Wrong credentials!");
+    return new ErrorResponse(HttpStatus.Unauthorized, message || "Wrong credentials!");
   }
 
-  static forbidden() {
-    return new ErrorResponse(HttpStatus.Forbidden, "Forbidden!");
+  static forbidden(message) {
+    return new ErrorResponse(HttpStatus.Forbidden, message || "Forbidden!");
   }
 
-  static badRequest() {
-    return new ErrorResponse(HttpStatus.BadRequest, "Bad request");
+  static badRequest(message) {
+    return new ErrorResponse(HttpStatus.BadRequest, message || "Bad request");
   }
 
-  static notFound() {
-    return new ErrorResponse(HttpStatus.NotFound, "Not Found!");
+  static notFound(message) {
+    return new ErrorResponse(HttpStatus.NotFound, message || "Not Found!");
   }
 
-
-  static duplicateEntry() {
-    return new ErrorResponse(HttpStatus.DuplicateEntry, "Duplicate entry");
+  static duplicateEntry(message) {
+    return new ErrorResponse(HttpStatus.DuplicateEntry, message || "Duplicate entry");
   }
 }
