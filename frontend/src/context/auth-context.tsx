@@ -4,6 +4,7 @@ import {
 	useCallback,
 	useMemo,
 	useEffect,
+	useRef,
 } from 'react';
 import { User } from '../models/user.model';
 import { AuthService } from '../services/auth.service';
@@ -20,7 +21,7 @@ export interface AuthContextState {
   login: (loginInput: LoginDto) => Promise<void>,
   register: (userInput: RegistrationDto) => Promise<void>,
   logout: () => Promise<void>,
-} 
+}
 
 export const AuthContext = createContext<AuthContextState | undefined>(undefined);
 
@@ -33,6 +34,8 @@ export function AuthContextProvider({ children }: { children: React.ReactNode })
 	const [error, setError] = useState<string | null>(null);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const navigate = useNavigate();
+
+	const isMounted = useRef<boolean>(false);
 
 	const login = useCallback(async (loginInput: LoginDto) => {
 		try {
@@ -89,6 +92,7 @@ export function AuthContextProvider({ children }: { children: React.ReactNode })
 	}, [navigate, accessToken]);
 
 	const refreshToken = useCallback(async () => {
+		console.log('in');
 		try {
 			setIsLoading(true);
 			const response = await AuthService.refreshToken();
@@ -105,9 +109,19 @@ export function AuthContextProvider({ children }: { children: React.ReactNode })
 	}, []);
 
 	useEffect(() => {
-		const interval = setInterval(() => {
+		// Try refresh token on app mount (if refresh token is still valid we will have an access token)
+		if (!isMounted.current) {
+			isMounted.current = true;
 			refreshToken();
-		}, 10 * 60 * 1000); // every 10 mins
+		}
+
+		let interval: number;
+		if (accessToken) {
+			// If we got a valid access token, we schedule a job to rerfesh the token every 10 mins
+			interval = setInterval(() => {
+				refreshToken();
+			}, 10 * 60 * 1000);
+		}
 
 		return () => clearInterval(interval);
   }, [accessToken, refreshToken]);

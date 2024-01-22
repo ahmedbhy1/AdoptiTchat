@@ -13,8 +13,9 @@ export async function verifyRefreshToken(req, _res, next) {
       refreshToken,
       refreshTokenSecretKey,
     );
+
     const user = await User.findOne({
-      id: payload?.id,
+      _id: payload?.id,
       tokenVersion: payload?.tokenVersion,
     });
 
@@ -24,6 +25,7 @@ export async function verifyRefreshToken(req, _res, next) {
     req.user = user;
     next();
   } catch (error) {
+    console.log(error);
     next(error);
   }
 }

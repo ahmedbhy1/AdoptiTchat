@@ -9,7 +9,7 @@ export class ErrorResponse extends Error {
     this.message = message;
   }
 
-  static unauthorized() {
+  static unauthorized(message) {
     return new ErrorResponse(HttpStatus.Unauthorized, message || "Wrong credentials!");
   }
 

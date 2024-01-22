@@ -23,6 +23,7 @@ export class JwtService {
 				id: user._id,
 				role: user.role,
 				email: user.email,
+				tokenVersion: user.tokenVersion
 			},
 			refreshTokenSecretKey,
 			{

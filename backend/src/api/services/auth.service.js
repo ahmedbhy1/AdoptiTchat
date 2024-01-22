@@ -35,7 +35,7 @@ export class AuthService {
 		return User.create({ email: userInput.email, password: hashedPassword, role: UserRole.Client });
   }
 
-	async incrementTokenVersion(userId) {
-		return User.findByIdAndUpdate(userId, { $inc: { tokenVersion: 1 }});
+	async incrementTokenVersion(user) {
+		return User.findByIdAndUpdate(user.Id, { $inc: { tokenVersion: 1 }}, { new: true });
 	}
 }

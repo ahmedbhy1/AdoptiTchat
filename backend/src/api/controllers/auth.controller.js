@@ -58,7 +58,7 @@ export default class AuthController {
 
     async logout(req, res, next) {
       try {
-        await this.#authService.incrementTokenVersion(req.user.id);
+        await this.#authService.incrementTokenVersion(req.user);
         res.cookie('jid', '');
         res.status(HttpStatus.NoContent).send();
       } catch (error) {
@@ -68,7 +68,7 @@ export default class AuthController {
   
     async refreshToken(req, res, next) {
       try {
-        await this.#authService.incrementTokenVersion(req.user.id);
+        await this.#authService.incrementTokenVersion(req.user);
         const accessToken = this.#jwtService.getAccessToken(req.user);
         const refreshToken = this.#jwtService.getRefreshToken(req.user);
 

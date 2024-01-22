@@ -3,6 +3,7 @@ import { useAuth } from '../hooks/useAuth';
 import { UserRole } from '../models/user-role';
 export default function RequirePermission({ roles, children }: { roles: UserRole[], children: React.ReactNode; }) {
 	const { user } = useAuth();
+	console.log(user)
 	if (roles?.length > 0
 		&& (!user?.role
 			|| !roles.includes(user.role))

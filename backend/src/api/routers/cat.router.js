@@ -5,8 +5,8 @@ import { UserRole } from '../core/UserRole.js';
 
 const router = Router();
 const catController = new CatController();
-router.get('/:id', authenticate(), (req, res, next) => catController.getCat(req, res, next));
 router.get('/', authenticate(), (req, res, next) => catController.getCats(req, res, next));
+router.get('/:id', authenticate(), (req, res, next) => catController.getCat(req, res, next));
 
 router.use(authenticate(UserRole.Admin));
 router.get('/countCatAdoption/:id', (req, res, next) => catController.countCatAdoptionRequests(req, res, next));

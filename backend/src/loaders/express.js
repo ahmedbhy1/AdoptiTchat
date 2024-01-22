@@ -6,9 +6,8 @@ import cookieParser from 'cookie-parser';
 import router from '../api/routers/index.js';
 
 const corsConfig = {
-  origin: ['http://localhost:5173'],
+  origin: ['http://localhost:5173', 'http://localhost:5173/'],
   credentials: true,
-  preflightContinue: true
 };
 
 export default (app) => {
