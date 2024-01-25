@@ -1,0 +1,29 @@
+How to Run the Project:
+
+Prerequisites:
+Create a MongoDB database.
+Update your credentials in the .env file.
+
+Backend Setup:
+Navigate to the backend project directory.
+Run the following commands:
+npm install   // Install dependencies
+npm run start:dev   // Start the backend server
+
+Frontend Setup:
+Navigate to the frontend project directory.
+Run the following commands:
+npm install   // Install dependencies
+npm run dev   // Start the frontend application
+
+User Creation:
+Create two users, one as an admin and the other as a client user:
+Use a POST request to BaseLink+"/api/auth/register" with the following body parameters:
+{ "email": "yourEmail", "password": "yourPassword", "role": 0 } for the admin user.
+{ "email": "yourEmail", "password": "yourPassword", "role": 1 } for the client user.
+
+Note:
+Adoption requests initiated by clients are processed through the web interface.
+Admins exclusively manage and approve these requests through the API (this part is not implemented on web interface).
+
+Feel free to reach out to me if anything is unclear or if you have any questions.
