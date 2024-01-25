@@ -5,57 +5,78 @@ import { useAuth } from "../hooks/useAuth";
 import { useEffect, useState } from "react";
 import { CatsService } from "../services/cats.service";
 import { Cat } from "../models/cat.model";
-function CatsPage() {
+import SearchBar from "../components/SearchBar";
+interface CatsPageProps {
+  favourites: boolean;
+}
+
+export function CatsPage({ favourites }: CatsPageProps) {
   const navigate = useNavigate();
   const { user, accessToken } = useAuth();
   const [catsList, setCatsList] = useState<Cat[]>([]);
-
-  
+  const [favouriteCatsIds, setFavouriteCatsIds] = useState<string[]>([]);
+  const [searchNameParam, setSearchNameParam] = useState("");
   useEffect(() => {
     const fetchCats = async () => {
-        try {
-          if (!accessToken)
-            return;
-    
-          const response = await CatsService.getAllCats(accessToken);
-          setCatsList(response.data?.cats ?? [])
+      try {
+        if (!accessToken) return;
+        if (!favourites) {
+          const response = await CatsService.getAllCats(
+            accessToken,
+            searchNameParam
+          );
+          setCatsList(response.data?.cats ?? []);
+        } else {
+          const response = await CatsService.getFavouriteCats(accessToken);
+          setCatsList(response.data?.cats ?? []);
         }
-        catch(error) {
-          console.log(error);
-        }
+        const response = await CatsService.getFavouriteCatsIds(accessToken);
+        setFavouriteCatsIds(response.data?.cats ? response.data?.cats : []);
+      } catch (error) {
+        console.log(error);
+      }
     };
 
     fetchCats();
-  }, [accessToken]);
-  
-  const handleAddCatButtonClick = (catName?: string) => {
-    console.log(catName);
-    navigate("/cat");
+  }, [accessToken, favourites, searchNameParam]);
+
+  const handleAddCatButtonClick = (catId?: string) => {
+    if (catId == undefined) {
+      navigate(`/cat`);
+    } else {
+      navigate(`/cat?id=${catId}`);
+    }
   };
   return (
-    <div className="flex flex-col items-center p-16">
-       {
-        user?.role === UserRole.Admin
-        && <button
-          type="button"
-          className="btn btn-primary mb-4"
-          onClick={() => handleAddCatButtonClick()}
-        >
-          Add New Cat
-        </button>
-      }
-      <div className="flex justify-center gap-10 flex-wrap">
+    <>
+      <div className="flex flex-col items-center p-16">
+        {user?.role === UserRole.Admin && (
+          <button
+            type="button"
+            className="btn btn-primary mb-4"
+            onClick={() => handleAddCatButtonClick()}
+          >
+            Add New Cat
+          </button>
+        )}
+        <SearchBar onChange={(value) => setSearchNameParam(value)}></SearchBar>
+
+        <div className="flex justify-center gap-10 flex-wrap">
           {catsList.map((cat, idx) => (
             <div
               className="w-1/4"
               key={idx}
-              onClick={() => handleAddCatButtonClick(cat.name)}
+              onClick={() => handleAddCatButtonClick(cat._id)}
             >
-                <CatCard name={cat.name} />
+              <CatCard
+                cat={cat}
+                isFavourite={favouriteCatsIds.includes(cat?._id)}
+              />
             </div>
           ))}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 export default CatsPage;

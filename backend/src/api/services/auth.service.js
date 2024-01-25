@@ -32,10 +32,12 @@ export class AuthService {
 
     const salt = bcrypt.genSaltSync(10);
     const hashedPassword = bcrypt.hashSync(userInput.password, salt);
-		return User.create({ email: userInput.email, password: hashedPassword, role: UserRole.Client });
+		return User.create({ email: userInput.email, password: hashedPassword, role: UserRole.Client,tokenVersion:1 });
   }
 
 	async incrementTokenVersion(user) {
-		return User.findByIdAndUpdate(user.Id, { $inc: { tokenVersion: 1 }}, { new: true });
+		user.tokenVersion+=1
+		user.save();
+		return user;
 	}
 }

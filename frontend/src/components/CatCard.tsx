@@ -1,21 +1,25 @@
+import { Cat } from "../models/cat.model";
+
 interface CatCardProps {
-  name: string;
+  cat: Cat;
+  isFavourite: boolean;
 }
 
-export function CatCard({ name }: CatCardProps) {
+export function CatCard({ cat, isFavourite }: CatCardProps) {
   return (
-<div className="rounded overflow-hidden shadow-lg h-96">
-  <div className="w-full h-1/2 overflow-hidden">
-    <img className="w-full" src="https://cataas.com/cat" alt="Cat image" />
-  </div>
-  <div className="px-6 py-4">
-    <div className="font-bold text-xl mb-2">{name}</div>
-    <p className="text-gray-700 text-base">
-      Lorem ipsum dolor sit amet, consectetur adipisicing elit. Voluptatibus quia, nulla! Maiores et perferendis eaque, exercitationem praesentium nihil.
-    </p>
-  </div>
-
-</div>
+    <div className="rounded overflow-hidden shadow-lg h-96">
+      {isFavourite && (
+        <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+          Favourite
+        </span>
+      )}
+      <div className="w-full h-1/2 overflow-hidden">
+        <img className="w-full" src={cat?.photoUrl} alt="Cat image" />
+      </div>
+      <div className="px-6 py-4">
+        <div className="font-bold text-xl mb-2">{cat?.name}</div>
+        <p className="text-gray-700 text-base">{cat?.description}</p>
+      </div>
+    </div>
   );
-
 }

@@ -1,13 +1,23 @@
-import { Disclosure } from '@headlessui/react'
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
-import { ProfileDropdown } from './ProfileDropdown';
-import { Link } from 'react-router-dom';
+import { Disclosure } from "@headlessui/react";
+import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
+import { ProfileDropdown } from "./ProfileDropdown";
+import { Link } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import { UserRole } from "../models/user-role";
 
 export function Navbar() {
+  const { user } = useAuth();
+
   const navigation = [
-    { name: 'Cats', href: '/cats', current: true },
-    { name: 'Favorites', href: '/favorites', current: false },
-  ]
+    { name: "Cats", href: "/cats", current: true, disabled: false },
+    {
+      name: "Favorites",
+      href: "/favorites",
+      current: false,
+      disabled: user?.role == UserRole.Admin,
+    },
+  ];
+
   return (
     <Disclosure as="nav" className="bg-gray-800">
       {({ open }) => (
@@ -36,24 +46,30 @@ export function Navbar() {
                 </div>
                 <div className="hidden sm:ml-6 sm:block">
                   <div className="flex space-x-4">
-                    {navigation.map((item) => (
-                      <Link
-                        key={item.name}
-                        to={item.href}
-                        className={
-                          'rounded-md px-3 py-2 text-sm font-medium' + item.current ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                        }
-                        aria-current={item.current ? 'page' : undefined}
-                      >
-                        {item.name}
-                      </Link>
-                    ))}
+                    {navigation.map(
+                      (item) =>
+                        !item.disabled && (
+                          <Link
+                            key={item.name}
+                            to={item.href}
+                            className={
+                              "rounded-md px-3 py-2 text-sm font-medium" +
+                              (item.current
+                                ? " bg-gray-900 text-white"
+                                : " text-gray-300 hover:bg-gray-700 hover:text-white")
+                            }
+                            aria-current={item.current ? "page" : undefined}
+                          >
+                            {item.name}
+                          </Link>
+                        )
+                    )}
                   </div>
                 </div>
               </div>
               <div className="absolute inset-y-0 right-0 flex items-center gap-4 pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
                 {/* Profile dropdown */}
-                <ProfileDropdown/>
+                <ProfileDropdown />
               </div>
             </div>
           </div>
@@ -66,9 +82,12 @@ export function Navbar() {
                   as="a"
                   href={item.href}
                   className={
-                    'block rounded-md px-3 py-2 text-base font-medium' +item.current ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                    "block rounded-md px-3 py-2 text-base font-medium" +
+                    item.current
+                      ? "bg-gray-900 text-white"
+                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
                   }
-                  aria-current={item.current ? 'page' : undefined}
+                  aria-current={item.current ? "page" : undefined}
                 >
                   {item.name}
                 </Disclosure.Button>
@@ -78,5 +97,5 @@ export function Navbar() {
         </>
       )}
     </Disclosure>
-  )
+  );
 }

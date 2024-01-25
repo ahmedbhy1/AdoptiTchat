@@ -18,6 +18,50 @@ export default class UserController {
     }
   }
 
+  async checkIfFavourite(req,res,next){
+    try {
+      const catId = req.params.catIs;
+      if (!catId) {
+        throw ErrorResponse.badRequest();
+      }
+      var isFavourites = false
+      const user = req.user;
+      if (user.favorites.includes(catId)) {
+        isFavourites = true;
+      }
+      res.status(HttpStatus.Ok).json({
+        data: {
+          favourite: isFavourites
+        }});    
+    }
+    catch (error) {
+      next(error);
+    }
+  }
+
+  async checkIfRequestedForAdoption(req,res,next){
+    try {
+      const catId = req.params.catIs;
+      if (!catId) {
+        throw ErrorResponse.badRequest();
+      }
+      var requested = false
+      const user = req.user;
+      console.log("user=",user);
+      console.log("catID=",catId);
+      if (user.requestedForAdoption && user.requestedForAdoption.includes(catId)) {
+        requested = true;
+      }
+      res.status(HttpStatus.Ok).json({
+        data: {
+          requested: requested
+        }});    
+    }
+    catch (error) {
+      next(error);
+    }
+  }
+
   async addCatToUserFavorites(req, res, next) {
     try {
       const catId = req.body?.catId;
@@ -64,10 +108,12 @@ export default class UserController {
       }
   
       // Check if the cat is in the user's favorites
-      if (!user.favorites.includes(catId)) {
+      const catIndex = user.favorites.indexOf(catId);
+      if (catIndex === -1) {
         throw ErrorResponse.notFound("Cat not found in favorites");
       }
-  
+
+      
       // Remove the cat from the user's favorites
       user.favorites.splice(catIndex, 1);
   
@@ -94,7 +140,20 @@ export default class UserController {
       const favoriteCats = await Cat.find({ _id: { $in: user.favorites } });
       res.status(HttpStatus.Ok).json({
         data: {
-          favoriteCats: favoriteCats
+          cats: favoriteCats
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getUserFavoriteCatsIds(req, res, next) {
+    try {
+      const user = req.user;
+      res.status(HttpStatus.Ok).json({
+        data: {
+          cats : user.favorites
         }
       });
     } catch (error) {
@@ -119,6 +178,7 @@ export default class UserController {
       }
 
       const user = req.user;
+      console.log("user=",user);
       if (user.requestedForAdoption.includes(catId)){
         throw ErrorResponse.badRequest("user already requested for adopting this cat");
       }
@@ -135,7 +195,7 @@ export default class UserController {
       res.status(HttpStatus.Ok).json({
         success: true,
         data: {
-          favoriteCats: favoriteCats
+          cats: user.requestedForAdoption
         }
       });
     } catch (error) {
@@ -161,7 +221,7 @@ export default class UserController {
       }
 
       // Remove the cat to the user's requestedForAdoption
-      user.requestedForAdoption = user.requestedForAdoption.filter(requestId => catId !== requestId);
+      user.requestedForAdoption = user.requestedForAdoption.filter(requestId => catId != requestId);
       
       // Save the updated user
       await user.save();
@@ -175,7 +235,7 @@ export default class UserController {
       res.status(HttpStatus.Ok).json({
         success: true,
         data: {
-          requestedForAdoption: user.requestedForAdoption
+          cats: user.requestedForAdoption
         }
       });
     } catch (error) {

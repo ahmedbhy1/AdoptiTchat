@@ -2,6 +2,7 @@ import { ErrorResponse } from "../core/ErrorResponse.js";
 import { HttpStatus } from "../core/HttpStatus.js";
 import { AdoptionStatus, Cat } from "../models/Cat.js";
 import { User } from "../models/User.js";
+import getRandomCat from 'random-cat-img';
 
 export default class CatController {
   async getCat(req, res, next) {
@@ -49,9 +50,18 @@ export default class CatController {
     }
   }
 
-  async getCats(_, res, next) {
+  async getCats(req, res, next) {
     try {
-      const cats = await Cat.find();
+      let cats;
+  
+      const nameQueryParam = req.query.name;
+      console.log(nameQueryParam);
+      if (nameQueryParam) {
+        cats = await Cat.find().where('name').equals(nameQueryParam);
+      } else {
+        cats = await Cat.find();
+      }
+  
       res.status(HttpStatus.Ok).json({
         success: true,
         data: {
@@ -68,12 +78,15 @@ export default class CatController {
       if (!req.body) {
         throw ErrorResponse.badRequest();
       }
-
+      
       const cat = await Cat.create(req.body);
       if (!cat) {
         throw new ErrorResponse.notFound();
       }
 
+      const data = await getRandomCat();
+      cat.photoUrl = data.message;
+      await cat.save();
 
       res.status(HttpStatus.Ok).json({
         success: true,
