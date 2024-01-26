@@ -148,6 +148,33 @@ export default class CatController {
     }
   }
 
+  async getUsersRequestAdoptionCat(req, res, next) {
+    try {
+      const catId = req.params?.id;
+      if (!catId) {
+        throw ErrorResponse.badRequest();
+      }
+      
+      const catToAdopt = await Cat.findOne({ _id: catId });
+      if (!catToAdopt) {
+        throw ErrorResponse.notFound("cat not found");
+      }
+      const usersRequestingAdoption = catToAdopt.adoptionStatus === AdoptionStatus.Adopted
+      ? []
+      : await User.find({ requestedForAdoption: catId })
+          .select('id email')
+          .exec();
+        
+      res.status(HttpStatus.Ok).json({
+        data: {
+          usersRequestingAdoption: usersRequestingAdoption
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async approveAdoptionRequest(req, res, next) {
     try {
       if (!req.body?.catId || !req.body?.userId) {

@@ -4,7 +4,7 @@ interface InputProps {
   id: string;
   label: string;
   value?: string;
-  onChange: (value: string) => void;
+  onChange: (value: any) => void;
   type?: HTMLInputTypeAttribute;
   placeholder?: string;
   disabled?: boolean;
@@ -34,10 +34,7 @@ const Input = ({
         value={value}
         type={type}
         placeholder={placeholder}
-        onChange={(e) => {
-          e.preventDefault();
-          onChange(e.target.value);
-        }}
+        onChange={(e) => onChange(e)}
         required
       />
     </div>

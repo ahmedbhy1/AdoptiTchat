@@ -6,8 +6,8 @@ import { useAuth } from "../hooks/useAuth";
 import { CatsService } from "../services/cats.service";
 import { AdoptionStatus, Cat, Sex } from "../models/cat.model";
 import { useNavigate } from "react-router-dom";
-import { CatTOAdd } from "../dtos/cats.responses.interfaces";
 import { UserRole } from "../models/user-role";
+import { defaultCatImg } from "../assets/variables";
 
 function CatPage() {
   const [queryParameters] = useSearchParams();
@@ -15,22 +15,38 @@ function CatPage() {
   const navigate = useNavigate();
 
   const addContext = id == null;
-  const { accessToken, isLoading, user } = useAuth();
-  const defaultCatImg =
-    "https://creativecardiff.org.uk/sites/default/files/pictures/ccg_social_icon_02.png";
-
-  const [name, setName] = useState("");
-  const [race, setRace] = useState("");
-  const [birthDay, setBirthDay] = useState("");
-  const [city, setCity] = useState("");
-  const [sex, setSex] = useState(Sex.Other);
+  const { accessToken, user } = useAuth();
   const [adoptionStatus, setAdoptionStatus] = useState(
     AdoptionStatus.Available
   );
-  const [description, setDescription] = useState("");
+
+  const [form, setForm] = useState({
+    name: "",
+    race: "",
+    birthDate: "",
+    city: "",
+    sex: Sex.Other,
+    description: "",
+  });
+
   const [catImg, setCatImg] = useState(addContext ? defaultCatImg : "");
   const [isFavourite, setIsFavourite] = useState(false);
   const [reqForAdoption, setReqForAdoption] = useState(false);
+
+  const handleFormChange = (e) => {
+    setForm({
+      ...form,
+      [e.target.id]: e.target.value,
+    });
+  };
+
+  const handleSexChange = (value) => {
+    console.log(value);
+    setForm({
+      ...form,
+      ["sex"]: value,
+    });
+  };
 
   const handleDeleteCatButtonClick = async () => {
     if (id && accessToken) {
@@ -39,132 +55,71 @@ function CatPage() {
     }
   };
 
-  const handleRemoveFromFavouritesButtonClick = async () => {
+  const handleAddRemoveToFavouritesButtonClick = async () => {
     if (id && accessToken) {
-      await CatsService.deleteCatFromFavourites(id, accessToken);
-      setIsFavourite(false);
+      if (isFavourite) {
+        await CatsService.deleteCatFromFavourites(id, accessToken);
+        setIsFavourite(false);
+      } else {
+        await CatsService.addCatToFavourites(id, accessToken);
+        setIsFavourite(true);
+      }
     }
   };
 
-  const handleAddToFavouritesButtonClick = async () => {
+  const handleReqCalcelReqForAdoptionButtonClick = async () => {
     if (id && accessToken) {
-      await CatsService.addCatToFavourites(id, accessToken);
-      setIsFavourite(true);
-    }
-  };
-
-  const handleReqForAdoptionButtonClick = async () => {
-    if (id && accessToken) {
-      await CatsService.reqCatAdoption(id, accessToken);
-      setReqForAdoption(true);
-    }
-  };
-
-  const handleCancelReqForAdoptionButtonClick = async () => {
-    if (id && accessToken) {
-      await CatsService.cancelReqCatAdoption(id, accessToken);
-      setReqForAdoption(false);
+      if (reqForAdoption) {
+        await CatsService.cancelReqCatAdoption(id, accessToken);
+        setReqForAdoption(false);
+      } else {
+        await CatsService.reqCatAdoption(id, accessToken);
+        setReqForAdoption(true);
+      }
     }
   };
 
   const handleSubmitCatButtonClick = async () => {
-    const myCat: CatTOAdd = {
-      birthDate: birthDay,
-      name: name,
-      race: race,
-      sex: sex,
-      city: city,
-      description: description,
-    };
     if (accessToken) {
       if (id) {
-        await CatsService.editCat(id, myCat, accessToken);
+        await CatsService.editCat(id, form, accessToken);
       } else {
-        await CatsService.addCat(myCat, accessToken);
+        await CatsService.addCat(form, accessToken);
       }
       navigate(`/cats`);
     }
   };
 
   useEffect(() => {
-    const fetchRequestForAdoption = async () => {
+    const fetchData = async () => {
       try {
-        if (!accessToken) return;
-        if (id) {
-          const response = await CatsService.getcheckIfRequestedForAdoption(
-            accessToken,
-            id
-          );
-          setReqForAdoption(
-            response.data?.requested ? response.data?.requested : false
-          );
+        if (!accessToken || !id) return;
+
+        // Fetch Request for Adoption
+        const reqForAdoptionResponse =
+          await CatsService.getcheckIfRequestedForAdoption(accessToken, id);
+        setReqForAdoption(reqForAdoptionResponse.data?.requested || false);
+
+        // Fetch Is Favourite
+        const isFavouriteResponse = await CatsService.getcheckIfFavourite(
+          accessToken,
+          id
+        );
+        setIsFavourite(isFavouriteResponse.data?.favourite || false);
+
+        // Fetch Cat
+        const catResponse = await CatsService.getCatById(accessToken, id);
+        const catData = catResponse.data?.cat;
+        if (catData) {
+          setForm(catData);
+          setCatImg(catData.photoUrl || defaultCatImg);
         }
       } catch (error) {
         console.log(error);
       }
     };
 
-    fetchRequestForAdoption();
-  }, [accessToken, id]);
-
-  useEffect(() => {
-    const fetchIsFavourite = async () => {
-      try {
-        if (!accessToken) return;
-        if (id) {
-          const response = await CatsService.getcheckIfFavourite(
-            accessToken,
-            id
-          );
-          setIsFavourite(
-            response.data?.favourite ? response.data?.favourite : false
-          );
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
-    fetchIsFavourite();
-  }, [accessToken, id]);
-
-  useEffect(() => {
-    const fetchCat = async () => {
-      try {
-        if (!accessToken) return;
-        if (id != null) {
-          const response = await CatsService.getCatById(accessToken, id);
-          if (response.data?.cat) {
-            setName(response.data?.cat?.name ? response.data.cat.name : "");
-            setRace(response.data?.cat?.race ? response.data.cat.race : "");
-            setBirthDay(
-              response.data?.cat?.birthDate ? response.data.cat.birthDate : ""
-            );
-            setCity(response.data?.cat?.city ? response.data.cat.city : "");
-            setDescription(
-              response.data?.cat?.description
-                ? response.data.cat.description
-                : ""
-            );
-            setSex(response.data?.cat?.sex ? response.data.cat.sex : Sex.Male);
-            setCatImg(
-              response.data?.cat?.photoUrl
-                ? response.data.cat.photoUrl
-                : defaultCatImg
-            );
-            setAdoptionStatus(
-              response.data?.cat?.adoptionStatus
-                ? response.data.cat.adoptionStatus
-                : AdoptionStatus.Available
-            );
-          }
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
-    fetchCat();
+    fetchData();
   }, [accessToken, id]);
 
   return (
@@ -176,41 +131,40 @@ function CatPage() {
             id="name"
             type="text"
             label="Name"
-            value={name}
-            onChange={(value: string) => setName(value)}
+            value={form.name}
+            onChange={handleFormChange}
           ></Input>
           <Input
             disabled={user?.role == UserRole.Client}
             id="race"
             type="text"
             label="Race"
-            value={race}
-            onChange={(value: string) => setRace(value)}
+            value={form.race}
+            onChange={handleFormChange}
           ></Input>
           <Input
             disabled={user?.role == UserRole.Client}
-            id="birthDay"
+            id="birthDate"
             type="date"
-            value={birthDay}
+            value={form.birthDate}
             label="Birth day"
-            onChange={(value: string) => setBirthDay(value)}
+            onChange={handleFormChange}
           ></Input>
           <Input
             disabled={user?.role == UserRole.Client}
             id="city"
-            value={city}
+            value={form.city}
             type="text"
             label="City"
-            onChange={(value: string) => setCity(value)}
+            onChange={handleFormChange}
           ></Input>
           <Dropdown
             disabled={user?.role == UserRole.Client}
-            label="Sex"
-            value={sex}
+            label="sex"
+            name="sex"
+            value={form.sex}
             options={["Male", "Female", "Other"]}
-            onChange={(value: string) => {
-              setSex(value);
-            }}
+            onChange={handleSexChange}
           ></Dropdown>
           <Input
             id="adoptionStatus"
@@ -223,10 +177,10 @@ function CatPage() {
           <Input
             disabled={user?.role == UserRole.Client}
             id="description"
-            value={description}
+            value={form.description}
             type="text"
             label="Description"
-            onChange={(value: string) => setDescription(value)}
+            onChange={handleFormChange}
           ></Input>
           <div>
             <button
@@ -256,11 +210,7 @@ function CatPage() {
             {user?.role == UserRole.Client && (
               <button
                 className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-2 border border-blue-700 rounded mt-2"
-                onClick={
-                  isFavourite
-                    ? handleRemoveFromFavouritesButtonClick
-                    : handleAddToFavouritesButtonClick
-                }
+                onClick={handleAddRemoveToFavouritesButtonClick}
               >
                 {isFavourite ? "Remove from Favorites" : "Add to Favorites"}
               </button>
@@ -269,11 +219,7 @@ function CatPage() {
               adoptionStatus != AdoptionStatus.Adopted && (
                 <button
                   className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-2 mt-2 border border-gray-400 rounded shadow mr-2"
-                  onClick={
-                    reqForAdoption
-                      ? handleCancelReqForAdoptionButtonClick
-                      : handleReqForAdoptionButtonClick
-                  }
+                  onClick={handleReqCalcelReqForAdoptionButtonClick}
                 >
                   {reqForAdoption
                     ? "Calcel Adoption Request"

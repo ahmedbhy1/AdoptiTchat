@@ -59,8 +59,11 @@ export function CatsPage({ favourites }: CatsPageProps) {
             Add New Cat
           </button>
         )}
-        <SearchBar onChange={(value) => setSearchNameParam(value)}></SearchBar>
-
+        {!favourites && (
+          <SearchBar
+            onChange={(value) => setSearchNameParam(value)}
+          ></SearchBar>
+        )}
         <div className="flex justify-center gap-10 flex-wrap">
           {catsList.map((cat, idx) => (
             <div

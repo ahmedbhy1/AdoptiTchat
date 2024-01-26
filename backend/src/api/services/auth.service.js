@@ -36,8 +36,7 @@ export class AuthService {
   }
 
 	async incrementTokenVersion(user) {
-		user.tokenVersion+=1
-		user.save();
-		return user;
+		console.log("user=",user);
+		return User.findByIdAndUpdate(user.Id, { $inc: { tokenVersion: 1 }}, { new: true });
 	}
 }

@@ -24,14 +24,18 @@ export function LoginPage() {
           placeholder="ahmed@gmail.com"
           label="Email"
           id="email"
-          onChange={(value: string) => setEmail(value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+          }}
         />
         <Input
           type="password"
           placeholder="******************"
           label="Password"
           id="password"
-          onChange={(value: string) => setPassword(value)}
+          onChange={(e) => {
+            setPassword(e.target.value);
+          }}
         />
         <div className="flex items-center justify-between">
           <button

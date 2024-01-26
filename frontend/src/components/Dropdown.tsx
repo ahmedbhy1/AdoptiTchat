@@ -8,19 +8,28 @@ export function Dropdown({
   value,
   label,
   disabled,
+  name,
 }: {
   options: string[];
-  onChange: (value: string) => void;
+  onChange: (value: any) => void;
   value: string;
   label: string;
   disabled: boolean;
+  name: string;
 }) {
   return (
     <>
       <label className="block text-gray-700 text-sm font-bold mb-5">
         {label}
       </label>{" "}
-      <Listbox value={value} onChange={onChange} disabled={disabled}>
+      <Listbox
+        name={name}
+        value={value}
+        onChange={(e) => {
+          onChange(e);
+        }}
+        disabled={disabled}
+      >
         <div className="relative mb-4">
           <Listbox.Button
             className="cursor-pointer h-full w-full   ring-1 ring-gray-200 text-left pl-4 bg-light rounded  

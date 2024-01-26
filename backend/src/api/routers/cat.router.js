@@ -10,6 +10,7 @@ router.get('/:id', authenticate(), (req, res, next) => catController.getCat(req,
 
 router.use(authenticate(UserRole.Admin));
 router.get('/countCatAdoption/:id', (req, res, next) => catController.countCatAdoptionRequests(req, res, next));
+router.get('/usersRequestAdoptionCat/:id', (req, res, next) => catController.getUsersRequestAdoptionCat(req, res, next));
 router.post('/approveAdoption', (req, res, next) => catController.approveAdoptionRequest(req, res, next));
 router.put('/:id', (req, res, next) => catController.updateCat(req, res, next));
 router.delete('/:id', (req, res, next) => catController.deleteCat(req, res, next));
