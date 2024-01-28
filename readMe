@@ -23,8 +23,5 @@ Use a POST request to BaseLink+"/api/auth/register" with the following body para
 By default, users are created as clients. To designate one as an admin, update the user's role in the user collection in MongoDB. 
 (the admin need to have access to the db). 
 
-Note:
-Adoption requests initiated by clients are processed through the web interface.
-Admins exclusively manage and approve these requests through the API (this part is not implemented on web interface).
 
 Feel free to reach out to me if anything is unclear or if you have any questions.
