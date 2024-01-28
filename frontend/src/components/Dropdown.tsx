@@ -32,7 +32,7 @@ export function Dropdown({
       >
         <div className="relative mb-4">
           <Listbox.Button
-            className="cursor-pointer h-full w-full   ring-1 ring-gray-200 text-left pl-4 bg-light rounded  
+            className="cursor-pointer h-9 w-full ring-1 ring-gray-200 text-left pl-4 bg-light rounded  
                focus:outline-none focus:ring-gray-500 focus:ring-2  shadow"
           >
             <span className="block truncate capitalize text-black">

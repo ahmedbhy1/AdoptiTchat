@@ -4,6 +4,7 @@ import { UserRole } from "../models/user-role";
 import { useAuth } from "../hooks/useAuth";
 import { useEffect, useState } from "react";
 import { CatsService } from "../services/cats.service";
+import { UsersService } from "../services/users.service";
 import { Cat } from "../models/cat.model";
 import SearchBar from "../components/SearchBar";
 interface CatsPageProps {
@@ -27,11 +28,15 @@ export function CatsPage({ favourites }: CatsPageProps) {
           );
           setCatsList(response.data?.cats ?? []);
         } else {
-          const response = await CatsService.getFavouriteCats(accessToken);
-          setCatsList(response.data?.cats ?? []);
+          if (user?.role == UserRole.Client) {
+            const response = await UsersService.getFavouriteCats(accessToken);
+            setCatsList(response.data?.cats ?? []);
+          }
         }
-        const response = await CatsService.getFavouriteCatsIds(accessToken);
-        setFavouriteCatsIds(response.data?.cats ? response.data?.cats : []);
+        if (user?.role == UserRole.Client) {
+          const response = await UsersService.getFavouriteCatsIds(accessToken);
+          setFavouriteCatsIds(response.data?.cats ? response.data?.cats : []);
+        }
       } catch (error) {
         console.log(error);
       }

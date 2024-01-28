@@ -4,21 +4,24 @@ import { Dropdown } from "../components/Dropdown";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { CatsService } from "../services/cats.service";
-import { AdoptionStatus, Cat, Sex } from "../models/cat.model";
+import { UsersService } from "../services/users.service";
+import { AdoptionStatus, Sex } from "../models/cat.model";
 import { useNavigate } from "react-router-dom";
 import { UserRole } from "../models/user-role";
 import { defaultCatImg } from "../assets/variables";
 
 function CatPage() {
   const [queryParameters] = useSearchParams();
-  const [id, setId] = useState(queryParameters.get("id"));
+  const [id] = useState(queryParameters.get("id"));
   const navigate = useNavigate();
 
   const addContext = id == null;
   const { accessToken, user } = useAuth();
-  const [adoptionStatus, setAdoptionStatus] = useState(
-    AdoptionStatus.Available
-  );
+  const [adoptionRequest, setAdoptionRequest] = useState(false);
+
+  const [usersRequestingAdoption, setUsersRequestingAdoption] = useState([
+    { _id: "", email: "" },
+  ]);
 
   const [form, setForm] = useState({
     name: "",
@@ -27,6 +30,7 @@ function CatPage() {
     city: "",
     sex: Sex.Other,
     description: "",
+    adoptionStatus: AdoptionStatus.Available,
   });
 
   const [catImg, setCatImg] = useState(addContext ? defaultCatImg : "");
@@ -41,7 +45,6 @@ function CatPage() {
   };
 
   const handleSexChange = (value) => {
-    console.log(value);
     setForm({
       ...form,
       ["sex"]: value,
@@ -58,10 +61,10 @@ function CatPage() {
   const handleAddRemoveToFavouritesButtonClick = async () => {
     if (id && accessToken) {
       if (isFavourite) {
-        await CatsService.deleteCatFromFavourites(id, accessToken);
+        await UsersService.deleteCatFromFavourites(id, accessToken);
         setIsFavourite(false);
       } else {
-        await CatsService.addCatToFavourites(id, accessToken);
+        await UsersService.addCatToFavourites(id, accessToken);
         setIsFavourite(true);
       }
     }
@@ -70,10 +73,10 @@ function CatPage() {
   const handleReqCalcelReqForAdoptionButtonClick = async () => {
     if (id && accessToken) {
       if (reqForAdoption) {
-        await CatsService.cancelReqCatAdoption(id, accessToken);
+        await UsersService.cancelReqCatAdoption(id, accessToken);
         setReqForAdoption(false);
       } else {
-        await CatsService.reqCatAdoption(id, accessToken);
+        await UsersService.reqCatAdoption(id, accessToken);
         setReqForAdoption(true);
       }
     }
@@ -90,6 +93,16 @@ function CatPage() {
     }
   };
 
+  const handleApproveCatAdoptionButtonClick = async () => {
+    if (id && accessToken) {
+      const adoptionRequest = await CatsService.approveAdoptionRequest(
+        id,
+        accessToken
+      );
+      setAdoptionRequest(adoptionRequest.data ?? false);
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -97,11 +110,11 @@ function CatPage() {
 
         // Fetch Request for Adoption
         const reqForAdoptionResponse =
-          await CatsService.getcheckIfRequestedForAdoption(accessToken, id);
+          await UsersService.getcheckIfRequestedForAdoption(accessToken, id);
         setReqForAdoption(reqForAdoptionResponse.data?.requested || false);
 
         // Fetch Is Favourite
-        const isFavouriteResponse = await CatsService.getcheckIfFavourite(
+        const isFavouriteResponse = await UsersService.getcheckIfFavourite(
           accessToken,
           id
         );
@@ -114,13 +127,24 @@ function CatPage() {
           setForm(catData);
           setCatImg(catData.photoUrl || defaultCatImg);
         }
+
+        if (user?.role == UserRole.Admin) {
+          // fetch users that request cat adoption
+          const usersResponse = await CatsService.getUsersRequestAdoptionCat(
+            id,
+            accessToken
+          );
+          setUsersRequestingAdoption(
+            usersResponse.data?.usersRequestingAdoption ?? []
+          );
+        }
       } catch (error) {
         console.log(error);
       }
     };
 
     fetchData();
-  }, [accessToken, id]);
+  }, [accessToken, id, adoptionRequest]);
 
   return (
     <>
@@ -160,7 +184,7 @@ function CatPage() {
           ></Input>
           <Dropdown
             disabled={user?.role == UserRole.Client}
-            label="sex"
+            label="Sex"
             name="sex"
             value={form.sex}
             options={["Male", "Female", "Other"]}
@@ -168,7 +192,7 @@ function CatPage() {
           ></Dropdown>
           <Input
             id="adoptionStatus"
-            value={adoptionStatus}
+            value={form.adoptionStatus}
             type="text"
             label="Adoption Status"
             disabled
@@ -216,7 +240,7 @@ function CatPage() {
               </button>
             )}
             {user?.role == UserRole.Client &&
-              adoptionStatus != AdoptionStatus.Adopted && (
+              form.adoptionStatus != AdoptionStatus.Adopted && (
                 <button
                   className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-2 mt-2 border border-gray-400 rounded shadow mr-2"
                   onClick={handleReqCalcelReqForAdoptionButtonClick}
@@ -229,12 +253,35 @@ function CatPage() {
 
             {!addContext && user?.role == UserRole.Admin && (
               <button
-                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 border border-red-700 rounded mt-2"
+                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 border border-red-700 rounded mt-2 mb-3"
                 onClick={handleDeleteCatButtonClick}
               >
                 Delete
               </button>
             )}
+            {!addContext &&
+              user?.role == UserRole.Admin &&
+              usersRequestingAdoption.length > 0 && (
+                <div className="mb-3">
+                  <label className="block text-gray-700 text-sm font-bold mb-3">
+                    {"users that request adoption for this cat:"}
+                  </label>{" "}
+                  {usersRequestingAdoption.map((user, idx) => (
+                    <div
+                      className="rounded overflow-hidden shadow-lg mb-3 border-2 flex items-center justify-between"
+                      key={idx}
+                    >
+                      <div className="ml-2">{user?.email}</div>
+                      <button
+                        className="btn btn-blue ml-2"
+                        onClick={handleApproveCatAdoptionButtonClick}
+                      >
+                        Approve
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
           </div>
         </div>
       </div>

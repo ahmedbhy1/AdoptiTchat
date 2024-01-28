@@ -177,11 +177,12 @@ export default class CatController {
 
   async approveAdoptionRequest(req, res, next) {
     try {
-      if (!req.body?.catId || !req.body?.userId) {
+      if (!req.body?.catId) {
         throw ErrorResponse.badRequest();
       }
+      const { catId } = req.body;
+      const user = req.user;
 
-      const { catId, userId } = req.body;
       const cat = await Cat.findById(catId);
       if (!cat) {
         throw ErrorResponse.notFound(`Couldn't find cat with id: ${catId}`);
@@ -190,13 +191,8 @@ export default class CatController {
       if (cat.adoptionStatus === AdoptionStatus.Adopted) {
         throw ErrorResponse.badRequest('Cat is already adopted');
       }
-      
-      const user = await User.findById(userId);
-      if (!user) {
-        throw ErrorResponse.notFound(`Couldn't find user with id: ${userId}`);
-      }
 
-      // Update user and car in a transaction
+      // Update user and cat in a transaction
       const session = await User.startSession();
       await session.withTransaction(async () => {
         user.requestedForAdoption = 
@@ -215,7 +211,7 @@ export default class CatController {
           });
       });
 
-      res.status(HttpStatus.Ok).json({ success: true });
+      res.status(HttpStatus.Ok).json({ data: true , success: true });
     }
     catch(error) {
       next(error);

@@ -33,3 +33,12 @@ export interface FavouriteCatsResponse {
 export interface RequestedForAdoptionResponse {
   requested: boolean;
 }
+
+export interface User {
+  _id: string;
+  email: string;
+}
+
+export interface UsersResponse {
+  usersRequestingAdoption: User[];
+}
