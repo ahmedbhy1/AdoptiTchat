@@ -1,3 +1,12 @@
+
+About:
+
+AdoptiTchat' is a platform that allows users to browse and adopt cats, inspired by AdopteUnMec. 
+It features a user-friendly interface where visitors can view available cats, mark favorites, and send adoption requests. 
+Admins can manage the list of cats by adding, editing, or removing entries, all while ensuring smooth adoption processes. 
+The platform is built with React on the front-end and a JavaScript framework of choice on the back-end.
+
+
 How to Run the Project:
 
 Prerequisites:
@@ -24,4 +33,4 @@ By default, users are created as clients. To designate one as an admin, update t
 (the admin need to have access to the db). 
 
 
-Feel free to reach out to me if anything is unclear or if you have any questions.
+Feel free to reach out to me if anything is unclear or if you have any questions :D !
